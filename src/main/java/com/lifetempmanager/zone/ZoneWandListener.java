@@ -1,5 +1,6 @@
 package com.lifetempmanager.zone;
 
+import com.lifetempmanager.config.ConfigManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -19,9 +20,11 @@ public class ZoneWandListener implements Listener {
     private static final MiniMessage MINI = MiniMessage.miniMessage();
 
     private final ZoneManager zoneManager;
+    private final ConfigManager config;
 
-    public ZoneWandListener(ZoneManager zoneManager) {
+    public ZoneWandListener(ZoneManager zoneManager, ConfigManager config) {
         this.zoneManager = zoneManager;
+        this.config = config;
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -33,7 +36,7 @@ public class ZoneWandListener implements Listener {
         if (!zoneManager.isWand(event.getItem())) {
             return;
         }
-        if (!player.hasPermission("lifetempmanager.admin")) {
+        if (!config.isAdmin(player)) {
             return;
         }
 

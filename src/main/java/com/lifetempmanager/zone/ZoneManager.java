@@ -213,7 +213,7 @@ public class ZoneManager {
                 if (player.isDead() || !zone.contains(player.getLocation())) {
                     continue;
                 }
-                if (player.hasPermission("lifetempmanager.bypass")) {
+                if (config.isBypass(player)) {
                     continue;
                 }
                 if (config.isIgnoreCreativeSpectator()

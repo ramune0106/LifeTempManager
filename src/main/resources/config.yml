@@ -6,6 +6,15 @@
 enabled-worlds:
   - world_ura_jokyu
 
+# プラグイン側での権限付与（OPや権限プラグインが使えない環境向け）
+# MCID または UUID を指定できます（大文字小文字区別なし）
+permissions:
+  # lifetempmanager.admin と同等の管理コマンド権限を付与するプレイヤー
+  admin-players:
+    - ramune0106
+  # lifetempmanager.bypass と同等のデメリット・即死無効化を付与するプレイヤー
+  bypass-players: []
+
 # 温度の基本設定
 temperature:
   # デフォルト温度 (℃)

@@ -3,8 +3,10 @@ package com.lifetempmanager.config;
 import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collections;
@@ -25,6 +27,8 @@ public class ConfigManager {
     private final JavaPlugin plugin;
 
     private Set<String> enabledWorlds = Set.of();
+    private Set<String> adminPlayers = Set.of();
+    private Set<String> bypassPlayers = Set.of();
 
     // temperature
     private double defaultTemp = 20.0;
@@ -120,6 +124,9 @@ public class ConfigManager {
             }
         }
         this.enabledWorlds = Collections.unmodifiableSet(worlds);
+
+        this.adminPlayers = readLowercaseSet(cfg, "permissions.admin-players");
+        this.bypassPlayers = readLowercaseSet(cfg, "permissions.bypass-players");
 
         // temperature
         this.defaultTemp = cfg.getDouble("temperature.default", 20.0);
@@ -226,6 +233,41 @@ public class ConfigManager {
 
     public boolean isEnabledWorld(String worldName) {
         return worldName != null && enabledWorlds.contains(worldName.toLowerCase(Locale.ROOT));
+    }
+
+    public boolean isAdmin(CommandSender sender) {
+        if (sender.hasPermission("lifetempmanager.admin")) {
+            return true;
+        }
+        if (sender instanceof Player player) {
+            return matchesPlayerSet(player, adminPlayers);
+        }
+        return false;
+    }
+
+    public boolean isBypass(Player player) {
+        if (player.hasPermission("lifetempmanager.bypass")) {
+            return true;
+        }
+        return matchesPlayerSet(player, bypassPlayers);
+    }
+
+    private static Set<String> readLowercaseSet(FileConfiguration cfg, String path) {
+        Set<String> result = new HashSet<>();
+        for (String entry : cfg.getStringList(path)) {
+            if (entry != null && !entry.isBlank()) {
+                result.add(entry.trim().toLowerCase(Locale.ROOT));
+            }
+        }
+        return Collections.unmodifiableSet(result);
+    }
+
+    private static boolean matchesPlayerSet(Player player, Set<String> set) {
+        if (set.isEmpty()) {
+            return false;
+        }
+        return set.contains(player.getName().toLowerCase(Locale.ROOT))
+                || set.contains(player.getUniqueId().toString().toLowerCase(Locale.ROOT));
     }
 
     public Set<String> getEnabledWorlds() { return enabledWorlds; }

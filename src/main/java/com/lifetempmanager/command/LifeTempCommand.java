@@ -425,7 +425,7 @@ public class LifeTempCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(CommandSender sender, String label) {
         msg(sender, "<yellow>=== LifeTempManager コマンド一覧 ===");
         msg(sender, "<gold>/" + label + " info [player] <gray>- 温度・即死ライン・防具耐性を表示");
-        if (sender.hasPermission("lifetempmanager.admin")) {
+        if (config.isAdmin(sender)) {
             msg(sender, "<gold>/" + label + " set <player> <温度> <gray>- 温度を設定");
             msg(sender, "<gold>/" + label + " add <player> <変化量> <gray>- 温度を加算/減算");
             msg(sender, "<gold>/" + label + " reset <player> <gray>- 温度をデフォルト値にリセット");
@@ -436,7 +436,7 @@ public class LifeTempCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean requireAdmin(CommandSender sender) {
-        if (!sender.hasPermission("lifetempmanager.admin")) {
+        if (!config.isAdmin(sender)) {
             msg(sender, "<red>このコマンドを実行する権限がありません。");
             return false;
         }
@@ -467,7 +467,7 @@ public class LifeTempCommand implements CommandExecutor, TabCompleter {
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command,
                                                 @NotNull String alias, @NotNull String[] args) {
-        boolean admin = sender.hasPermission("lifetempmanager.admin");
+        boolean admin = config.isAdmin(sender);
         if (args.length == 1) {
             List<String> subs = new ArrayList<>();
             subs.add("info");

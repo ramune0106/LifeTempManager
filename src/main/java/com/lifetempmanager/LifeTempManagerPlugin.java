@@ -43,7 +43,7 @@ public class LifeTempManagerPlugin extends JavaPlugin {
 
         // 各種リスナー登録
         Bukkit.getPluginManager().registerEvents(new PlayerLifecycleListener(temperatureManager), this);
-        Bukkit.getPluginManager().registerEvents(new ZoneWandListener(zoneManager), this);
+        Bukkit.getPluginManager().registerEvents(new ZoneWandListener(zoneManager, configManager), this);
 
         // MythicMobs 連携登録
         if (Bukkit.getPluginManager().getPlugin("MythicMobs") != null) {

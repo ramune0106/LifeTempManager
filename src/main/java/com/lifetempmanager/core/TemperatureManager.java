@@ -392,7 +392,7 @@ public class TemperatureManager {
     }
 
     private boolean isExemptFromPenalties(Player player) {
-        if (player.hasPermission("lifetempmanager.bypass")) {
+        if (config.isBypass(player)) {
             return true;
         }
         if (config.isIgnoreCreativeSpectator()) {
