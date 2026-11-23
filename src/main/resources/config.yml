@@ -1,0 +1,162 @@
+# ============================================================
+# LifeTempManager 設定ファイル (Paper 1.21.11 / MythicMobs 5.14+)
+# ============================================================
+
+# 温度管理システムを有効化するワールド名（完全一致・大文字小文字区別なし）
+enabled-worlds:
+  - world_ura_jokyu
+
+# 温度の基本設定
+temperature:
+  # デフォルト温度 (℃)
+  default: 20.0
+  # 基本の高温側即死ライン (℃)
+  base-max-limit: 100.0
+  # 基本の低温側即死ライン (℃)
+  base-min-limit: -80.0
+  # 自然回復の設定
+  recovery:
+    # 最後に温度変更を受けてから自然回復が始まるまでの待機時間 (秒)
+    delay-seconds: 10
+    # 待機時間経過後、1秒ごとにデフォルト温度へ戻る量 (℃/秒)
+    rate-per-second: 20.0
+    # 空間エリア(zone)からの温度変化でも自然回復カウントをリセットするか
+    reset-timer-on-zone-change: true
+
+# 死亡・ゲームモード等の扱い
+lifecycle:
+  # 死亡時にデフォルト温度へリセットするか
+  reset-on-death: true
+  # クリエイティブ・スペクテイターモード時はデメリットや即死を無効化するか
+  ignore-creative-spectator: true
+  # プレイヤーデータ保存先ファイル (plugins/LifeTempManager/playerdata.yml)
+  # ※PDC(プレイヤー本体)と併用してリログイン時も確実に維持します
+  save-interval-seconds: 300
+
+# 専用防具（耐熱・耐冷）の設定
+armor:
+  # NBTタグで明示的な延長値がなく「種類のみ」または部位カウントを使う場合の1部位あたり基本延長値 (℃)
+  default-limit-bonus-per-piece: 50.0
+  # デメリット段階の無効化に必要な部位数
+  # 2部位: 第1段階(鈍足・盲目)無効化 / 4部位: 第2段階(継続ダメージのみ)無効化(視界エフェクトは維持)
+  stage1-immunity-pieces: 2
+  stage2-damage-immunity-pieces: 4
+  # MythicMobs の NBT: セクションで認識するタグキー名
+  # 例:
+  #   NBT:
+  #     lifetemp_heat: 50
+  #     lifetemp_cold: 50
+  nbt-keys:
+    heat: "lifetemp_heat"
+    cold: "lifetemp_cold"
+  # 任意: NBTタグを付けられないアイテム向けに MythicMobs アイテムID で直接指定するフォールバック
+  # 形式:
+  #   MythicItemId:
+  #     type: HEAT # HEAT / COLD / BOTH
+  #     bonus: 50.0
+  #     pieces: 1
+  mythic-item-overrides: {}
+
+# デメリット設定（A案: 各プレイヤーの現在の即死ラインからの逆算）
+# 例: デフォルト高温即死 100℃ のとき
+#   stage1 (offset 40) -> 60℃ 以上
+#   stage2 (offset 20) -> 80℃ 以上
+#   instant-death      -> 100℃ 以上
+# フルセット(4部位)で高温即死 300℃ のとき
+#   stage1 (offset 40) -> 260℃ 以上 (2部位以上で無効)
+#   stage2 (offset 20) -> 280℃ 以上 (4部位でダメージのみ無効、炎上エフェクトは維持)
+#   instant-death      -> 300℃ 以上
+penalties:
+  # 第1段階: 鈍足・盲目（2部位で無効化）
+  stage1:
+    # 即死ラインの何℃手前から発動するか
+    offset-from-lethal: 40.0
+    # 鈍足 (SLOWNESS)
+    slowness:
+      enabled: true
+      amplifier: 1 # 0 = 鈍足I, 1 = 鈍足II
+    # 盲目 (BLINDNESS)
+    blindness:
+      enabled: true
+      amplifier: 0 # 0 = 盲目I
+    # ポーション効果の付与持続時間 (tick, 1秒ごとに更新されるため60tick推奨)
+    effect-duration-ticks: 60
+
+  # 第2段階: 継続ダメージ＋視界エフェクト（4部位でダメージのみ無効化・視界エフェクトは維持）
+  stage2:
+    # 即死ラインの何℃手前から発動するか
+    offset-from-lethal: 20.0
+    # 継続ダメージ
+    damage:
+      enabled: true
+      # 1回のダメージ量 (2.0 = ハート1個)
+      amount: 2.0
+      # ダメージ間隔 (秒)
+      interval-seconds: 1
+      # true = 防具・耐性等を貫通する直接ダメージ(HP直接減少・ノックバックなし)
+      # false = 通常ダメージイベント経由 (EntityDamageEvent)
+      bypass-armor: false
+    # 視界エフェクト（4部位着用時も維持される）
+    visual-effects:
+      # 高温時: 見た目の炎上エフェクト (実火傷ダメージなしのビジュアル炎上)
+      heat-fire-overlay: true
+      # 低温時: 粉雪の画面端凍結エフェクト
+      cold-freeze-overlay: true
+      # 粉雪エフェクトの強さ (0〜140程度。140で最大凍結オーバーレイ)
+      cold-freeze-ticks: 140
+
+  # 第3段階: 即死（防具で無効化不可）
+  lethal:
+    # 即死時にプレイヤーへ送信するメッセージ (MiniMessage形式 / 空欄で無効)
+    heat-death-message: "<red><bold>灼熱の高温に耐えられず力尽きた... (<temp>℃)"
+    cold-death-message: "<aqua><bold>極寒の低温に耐えられず凍え死んだ... (<temp>℃)"
+
+# 警告 Title 設定
+warning:
+  enabled: true
+  # 即死ラインの何℃手前から警告を表示するか (デフォルト: 20℃手前 -> 80℃ / -60℃)
+  offset-from-lethal: 20.0
+  # 危険域にいる間、何秒ごとに警告Titleを再表示するか
+  interval-seconds: 5
+  # Title 表示時間 (tick: 20tick = 1秒)
+  fade-in-ticks: 5
+  stay-ticks: 30
+  fade-out-ticks: 10
+  heat:
+    title: "<red><bold>⚠ 高温警告 ⚠"
+    subtitle: "<gold>現在 <temp>℃ <gray>(即死ライン: <max>℃)"
+    sound: "minecraft:block.note_block.pling"
+    sound-volume: 1.0
+    sound-pitch: 0.6
+  cold:
+    title: "<aqua><bold>⚠ 低温警告 ⚠"
+    subtitle: "<white>現在 <temp>℃ <gray>(即死ライン: <min>℃)"
+    sound: "minecraft:block.note_block.pling"
+    sound-volume: 1.0
+    sound-pitch: 0.5
+
+# BossBar によるリアルタイム温度表示（1秒=20tickごとに更新）
+bossbar:
+  enabled: true
+  # true = 温度がデフォルト(20℃)の平常時はBossBarを非表示にする
+  # false = 有効ワールド内では常時表示する
+  hide-when-normal: false
+  # ゲージスタイル: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12, NOTCHED_20
+  overlay: "NOTCHED_10"
+  # タイトルフォーマット (MiniMessage形式)
+  # 使用可能プレースホルダー: <temp>, <min>, <max>, <heat_pieces>, <cold_pieces>, <status>
+  title-format: "<status> <white>温度: <temp_color><temp>℃ <gray>[<aqua><min>℃ <gray>～ <red><max>℃<gray>]"
+  status-labels:
+    normal: "<green>[安定]"
+    hot-stage1: "<yellow>[高温注意]"
+    hot-stage2: "<red><bold>[高温危険]"
+    cold-stage1: "<aqua>[低温注意]"
+    cold-stage2: "<blue><bold>[低温危険]"
+
+# 空間での継続温度変化エリア（WorldEdit風範囲指定）の設定
+zones:
+  # 範囲選択ワンドのアイテムマテリアル
+  wand-material: "BLAZE_ROD"
+  wand-name: "<gold><bold>温度エリア選択ワンド"
+  # エリア境界可視化 (/ltm zone show) の持続時間 (秒)
+  preview-duration-seconds: 10

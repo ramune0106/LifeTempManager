@@ -1,0 +1,28 @@
+name: LifeTempManager
+version: '${version}'
+main: com.lifetempmanager.LifeTempManagerPlugin
+api-version: '1.21'
+description: Temperature management plugin for Paper 1.21.11 with MythicMobs 5.14+ integration
+author: LifeTempManager
+softdepend:
+  - MythicMobs
+
+commands:
+  lifetemp:
+    description: LifeTempManager の管理コマンド
+    aliases: [ltm, temp]
+    usage: /<command> <info|set|add|reset|armor|zone|reload>
+    permission: lifetempmanager.use
+
+permissions:
+  lifetempmanager.use:
+    description: 自身の温度情報の確認
+    default: true
+  lifetempmanager.admin:
+    description: LifeTempManager の全管理コマンド（温度変更・防具設定・エリア設定・リロード）
+    default: op
+    children:
+      lifetempmanager.use: true
+  lifetempmanager.bypass:
+    description: 温度デメリット・即死を無効化（管理・建築用）
+    default: false
